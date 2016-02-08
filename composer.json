@@ -1,0 +1,25 @@
+{
+    "name": "jemerick/web-scripts",
+    "require": {
+        "php": ">=5.4",
+        "abraham/twitteroauth": "^0.6.2",
+        "aura/sql": "^2.4",
+        "dg/rss-php": "^1.2",
+        "knplabs/github-api": "^1.5",
+        "madcoda/php-youtube-api": "^1.2",
+        "monolog/monolog": "^1.17",
+        "suin/php-rss-writer": "^1.3",
+        "thepixeldeveloper/sitemap": "^4.1",
+        "guzzlehttp/guzzle": "^6.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^5.2"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "jacobemerick",
+            "email": "jpemeric@gmail.com"
+        }
+    ]
+}
