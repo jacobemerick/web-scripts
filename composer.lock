@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "adca2cb12fcf92ea42755e47d06341a5",
-    "content-hash": "51fb9dec3ad527a50674a5416cb6652a",
+    "hash": "5f837e10982d2e61ab3b3ceb9965e34f",
+    "content-hash": "4052290e47cfc05f29a2b056b67b78a2",
     "packages": [
         {
             "name": "abraham/twitteroauth",
@@ -691,6 +691,53 @@
                 "psr-3"
             ],
             "time": "2012-12-21 11:40:51"
+        },
+        {
+            "name": "simons/dailymile-php-wrapper",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/simons/dailymile-php-wrapper.git",
+                "reference": "546e290299512fdfdd6f367ab6fff07c677d25f2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/simons/dailymile-php-wrapper/zipball/546e290299512fdfdd6f367ab6fff07c677d25f2",
+                "reference": "546e290299512fdfdd6f367ab6fff07c677d25f2",
+                "shasum": ""
+            },
+            "require": {
+                "guzzle/guzzle": "~3.7",
+                "php": ">=5.4.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "3.7.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "DailymilePHP\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Simon Scarfe",
+                    "email": "simon.scarfe@gmail.com",
+                    "homepage": "http://breakfastdinnertea.co.uk"
+                }
+            ],
+            "description": "PHP wrapper around dailymile API",
+            "keywords": [
+                "api",
+                "client",
+                "dailymile",
+                "wrapper"
+            ],
+            "time": "2013-12-30 18:36:57"
         },
         {
             "name": "suin/php-rss-writer",
@@ -1886,9 +1933,18 @@
             "time": "2016-02-02 13:44:19"
         }
     ],
-    "aliases": [],
+    "aliases": [
+        {
+            "alias": "1.0.0",
+            "alias_normalized": "1.0.0.0",
+            "version": "9999999-dev",
+            "package": "simons/dailymile-php-wrapper"
+        }
+    ],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "simons/dailymile-php-wrapper": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

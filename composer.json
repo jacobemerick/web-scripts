@@ -10,7 +10,8 @@
         "monolog/monolog": "^1.17",
         "suin/php-rss-writer": "^1.3",
         "thepixeldeveloper/sitemap": "^4.1",
-        "guzzlehttp/guzzle": "^6.1"
+        "guzzlehttp/guzzle": "^6.1",
+        "simons/dailymile-php-wrapper": "dev-master as 1.0.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^5.2"
