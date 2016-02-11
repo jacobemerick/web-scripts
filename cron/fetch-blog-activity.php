@@ -61,7 +61,7 @@ foreach ($commentFeed->item as $item) {
 
     $db->getWrite()->perform(
         "INSERT INTO `jpemeric_stream`.`blog_comment` (`permalink`, `datetime`, `metadata`) " .
-        "VALUES (;permalink, :datetime, :metadata)",
+        "VALUES (:permalink, :datetime, :metadata)",
         [
             'permalink' => (string) $item->guid,
             'datetime' => $dateTime->format('Y-m-d H:i:s'),
