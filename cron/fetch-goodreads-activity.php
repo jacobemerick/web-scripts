@@ -13,7 +13,7 @@ $response = $client->get("/review/list_rss/{$config->goodread->shelf_id}");
 $reviews = (string) $response->getBody();
 $reviews = simplexml_load_string($reviews, 'SimpleXMLElement', LIBXML_NOCDATA);
 
-foreach ($reviews as $review) {
+foreach ($reviews->channel->item as $review) {
     $dateTime = new DateTime((string) $review->pubDate);
     if ($dateTime <= $mostRecentReviewDateTime) {
         break;
