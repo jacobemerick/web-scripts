@@ -7,7 +7,7 @@ $mostRecentBlogDateTime = $db->getRead()->fetchValue(
 );
 $mostRecentBlogDateTime = new DateTime($mostRecentBlogDateTime);
 
-$blogFeed = Feed::loadRss('http://blog.jacobemerick.com/rss.xml');
+$blogFeed = Feed::loadRss('https://blog.jacobemerick.com/rss.xml');
 foreach ($blogFeed->item as $item) {
     $dateTime = new DateTime($item->pubDate);
     if ($dateTime <= $mostRecentBlogDateTime) {
@@ -41,7 +41,7 @@ $mostRecentBlogCommentDateTime = $db->getRead()->fetchValue(
 );
 $mostRecentBlogCommentDateTime = new DateTime($mostRecentBlogCommentDateTime);
 
-$commentFeed = Feed::loadRss('http://blog.jacobemerick.com/rss-comments.xml');
+$commentFeed = Feed::loadRss('https://blog.jacobemerick.com/rss-comments.xml');
 foreach ($commentFeed->item as $item) {
     $dateTime = new DateTime($item->pubDate);
     if ($dateTime <= $mostRecentBlogCommentDateTime) {
