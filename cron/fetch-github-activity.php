@@ -42,12 +42,12 @@ foreach ($commits as $commit) {
 
     $db->getWrite()->perform(
         "INSERT INTO `jpemeric_stream`.`changelog` " .
-        "(`hash`, `message`, `messageShort`, `datetime`, `author`, `commit_link`) " .
-        "VALUES (:hash, :message, :messageShort, :datetime, :author, :commit_link)",
+        "(`hash`, `message`, `message_short`, `datetime`, `author`, `commit_link`) " .
+        "VALUES (:hash, :message, :message_short, :datetime, :author, :commit_link)",
         [
             'hash' => $commit['sha'],
             'message' => $commit['commit']['message'],
-            'messageShort' => $messageShort,
+            'message_short' => $messageShort,
             'datetime' => $mostRecentChangeDateTime->format('Y-m-d H:i:s'),
             'author' => $commit['commit']['author']['name'],
             'commit_link' => $commit['html_url'],
@@ -90,7 +90,7 @@ foreach ($events as $event) {
         continue;
     }
 
-    $eventDateTime->setTimezone($container['default_timezone']);
+    $eventDateTime->setTimezone(new DateTimeZone('America/Phoenix'));
 
     $db->getWrite()->perform(
         "INSERT INTO `jpemeric_stream`.`github` (`event_id`, `type`, `datetime`, `metadata`) " .
