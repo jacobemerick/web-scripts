@@ -27,7 +27,6 @@ foreach ($recentTweets as $tweet) {
     );
     if ($uniqueTweetCheck !== false) {
         if ($uniqueTweetCheck['metadata'] != json_encode($tweet)) {
-var_dump($tweet);
             $db->getWrite()->perform(
                 "UPDATE `jpemeric_stream`.`twitter` SET `metadata` = :metadata WHERE `tweet_id` = :tweet_id",
                 [
