@@ -40,6 +40,9 @@ foreach ($commits as $commit) {
         $messageShort .= '...';
     }
 
+    $commitDateTime = new DateTime($commit['commit']['author']['date']);
+    $commitDateTime->setTimezone(new DateTimeZone('America/Phoenix'));
+
     $db->getWrite()->perform(
         "INSERT INTO `jpemeric_stream`.`changelog` " .
         "(`hash`, `message`, `message_short`, `datetime`, `author`, `commit_link`) " .
@@ -48,7 +51,7 @@ foreach ($commits as $commit) {
             'hash' => $commit['sha'],
             'message' => $commit['commit']['message'],
             'message_short' => $messageShort,
-            'datetime' => $mostRecentChangeDateTime->format('Y-m-d H:i:s'),
+            'datetime' => $commitDateTime->format('Y-m-d H:i:s'),
             'author' => $commit['commit']['author']['name'],
             'commit_link' => $commit['html_url'],
         ]

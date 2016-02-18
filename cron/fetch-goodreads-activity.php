@@ -14,7 +14,7 @@ $reviews = (string) $response->getBody();
 $reviews = simplexml_load_string($reviews, 'SimpleXMLElement', LIBXML_NOCDATA);
 
 foreach ($reviews->channel->item as $review) {
-    $dateTime = new DateTime((string) $review->pubDate);
+    $dateTime = new DateTime((string) $review->user_read_at);
     if ($dateTime <= $mostRecentReviewDateTime) {
         break;
     }
@@ -42,7 +42,7 @@ foreach ($reviews->channel->item as $review) {
         "INSERT INTO `jpemeric_stream`.`goodread` (`permalink`, `book_id`, `datetime`, `metadata`) " . 
         "VALUES (:permalink, :book_id, :datetime, :metadata)",
         [
-            'permalink' => (string) $review->pubData,
+            'permalink' => (string) $review->guid,
             'book_id' => (string) $review->book_id,
             'datetime' => $dateTime->format('Y-m-d H:i:s'),
             'metadata' => json_encode($review),
