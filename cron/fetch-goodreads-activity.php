@@ -19,11 +19,20 @@ foreach ($reviews->channel->item as $review) {
         break;
     }
 
-    $uniqueReviewCheck = $db->getRead()->fetchValue(
-        "SELECT 1 FROM `jpemeric_stream`.`goodread` WHERE `permalink` = :guid LIMIT 1",
+    $uniqueReviewCheck = $db->getRead()->fetchOne(
+        "SELECT `metadata` FROM `jpemeric_stream`.`goodread` WHERE `permalink` = :guid LIMIT 1",
         ['guid' => (string) $review->guid]
     );
     if ($uniqueReviewCheck !== false) {
+        if ($uniqueReviewCheck['metadata'] != json_encode($review)) {
+            $db->getWrite()->perform(
+                "UPDATE `jpemeric_stream`.`goodread` SET `metadata` = :metadata WHERE `permalink` = :guid",
+                [
+                    'metadata' => json_encode($review),
+                    'guid' => (string) $review->guid,
+                ]
+            );
+        }
         continue;
     }
 
