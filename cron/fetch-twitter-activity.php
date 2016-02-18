@@ -30,7 +30,7 @@ foreach ($recentTweets as $tweet) {
             $db->getWrite()->perform(
                 "UPDATE `jpemeric_stream`.`twitter` SET `metadata` = :metadata WHERE `tweet_id` = :tweet_id",
                 [
-                    'metadata' => json_encode($uniqueTweetCheck['metadata']),
+                    'metadata' => json_encode($tweet),
                     'tweet_id' => $tweet['id_str'],
                 ]
             );
@@ -47,7 +47,7 @@ foreach ($recentTweets as $tweet) {
         [
             'tweet_id' => $tweet['id_str'],
             'datetime' => $dateTime->format('y-m-d h:i:s'),
-            'metadata' => json_encode($uniqueTweetCheck['metadata']),
+            'metadata' => json_encode($tweet),
         ]
     );
 }
