@@ -46,7 +46,7 @@ foreach ($recentTweets as $tweet) {
         "VALUES (:tweet_id, :datetime, :metadata)",
         [
             'tweet_id' => $tweet['id_str'],
-            'datetime' => $dateTime->format('y-m-d h:i:s'),
+            'datetime' => $dateTime->format('Y-m-d H:i:s'),
             'metadata' => json_encode($tweet),
         ]
     );
