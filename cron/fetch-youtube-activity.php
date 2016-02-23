@@ -33,7 +33,7 @@ foreach ($playlist as $playlistItem) {
         [
             'video_id' => $playlistItem->contentDetails->videoId,
             'datetime' => $datetime->format('Y-m-d H:i:s'),
-            'metadata' => json_encode($metadata),
+            'metadata' => json_encode($playlistItem),
         ]
     );
 }
