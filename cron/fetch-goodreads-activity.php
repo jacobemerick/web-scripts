@@ -19,6 +19,13 @@ foreach ($reviews->channel->item as $review) {
         break;
     }
 
+    // there seems to be a problem with goodread data source... it lies
+    // the user_read_at field is not always reliable
+    // this check is to make sure that the user_read_at field is sane
+    if ($dateTime <= new DateTime('-24 hours')) {
+        continue;
+    }
+
     $uniqueReviewCheck = $db->getRead()->fetchOne(
         "SELECT `metadata` FROM `jpemeric_stream`.`goodread` WHERE `permalink` = :guid LIMIT 1",
         ['guid' => (string) $review->guid]
