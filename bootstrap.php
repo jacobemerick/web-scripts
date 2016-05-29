@@ -51,3 +51,13 @@ $db->setRead('slave', function () use ($config) {
     $pdo->setProfiler($profiler);
     return $pdo;
 });
+
+// setup logger
+$logName = $_SERVER['PHP_SELF'];
+$logName = explode('/', $logName);
+$logName = end($logName);
+$logName = explode('.', $logName);
+$logName = current($logName);
+
+$logger = new Monolog\Logger('script');
+$logger->pushHandler(new Monolog\Handler\StreamHandler("logs/{$logName}.log", Monolog\Logger::INFO));

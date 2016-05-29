@@ -1,5 +1,7 @@
 <?php
 
+$startTime = microtime(true);
+
 require_once __DIR__ . '/../bootstrap.php';
 
 $commentDBConfig = $config->database->comment;
@@ -41,6 +43,11 @@ $commentBatch = $db->getRead()->fetchAll("
         'last_batch_limit' => $lastBatchLimit,
     ]);
 
+$commentCount = count($commentBatch);
+$logger->addInfo("Found {$commentCount} comments to import, starting from ID: {$lastBatchLimit}.\n");
 foreach ($commentBatch as $comment) {
     // todo insert
 }
+
+$processTime = microtime(true) - $startTime;
+$logger->addInfo("Finished script, total time {$processTime} ms.\n");
