@@ -44,10 +44,159 @@ $commentBatch = $db->getRead()->fetchAll("
     ]);
 
 $commentCount = count($commentBatch);
-$logger->addInfo("Found {$commentCount} comments to import, starting from ID: {$lastBatchLimit}.\n");
+if ($commentCount < 1) {
+    $logger->addInfo("Found no new comments to import, exiting early");
+    exit;
+}
+$logger->addInfo("Found {$commentCount} comments to import, starting from ID: {$lastBatchLimit}.");
+
 foreach ($commentBatch as $comment) {
-    // todo insert
+    $query = "
+        SELECT `id` FROM `comment_service`.`commenter`
+        WHERE `name` = :name AND `email` = :email AND `website` = :website
+        LIMIT 1";
+    $bindings = [
+        'name' => $comment['name'],
+        'email' => $comment['email'],
+        'website' => $comment['url'],
+    ];
+    $commenterId = $commentDB->fetchValue($query, $bindings);
+    if (!$commenterId) {
+        $query = "
+            INSERT INTO `comment_service`.`commenter` (`name`, `email`, `website`)
+            VALUES (:name, :email, :website)";
+        $bindings = [
+            'name' => $comment['name'],
+            'email' => $comment['email'],
+            'website' => $comment['url'],
+        ];
+        if (!$commentDB->perform($query, $bindings)) {
+            $logger->addError('Could not insert commenter - exiting out');
+            exit;
+        }
+        $commenterId = $commentDB->lastInsertId();
+    }
+
+    $query = "
+        INSERT INTO `comment_service`.`comment_body` (`body`)
+        VALUES (:body)";
+    $bindings = [
+        'body' => $comment['body'],
+    ];
+    if (!$commentDB->perform($query, $bindings)) {
+        $logger->addError('Could not insert comment_body - exiting out');
+        exit;
+    }
+    $bodyId = $commentDB->lastInsertId();
+
+    $query = "
+        SELECT `id` FROM `comment_service`.`comment_domain`
+        WHERE `domain` = :domain LIMIT 1";
+    $bindings = [
+        'domain' => $comment['site'],
+    ];
+    $domainId = $commentDB->fetchValue($query, $bindings);
+    if (!$domainId) {
+        $query = "
+            INSERT INTO `comment_service`.`comment_domain` (`domain`)
+            VALUES (:domain)";
+        $bindings = [
+            'domain' => $comment['site'],
+        ];
+        if (!$commentDB->perform($query, $bindings)) {
+            $logger->addError('Could not insert comment_domain - exiting out');
+            exit;
+        }
+        $domainId = $commentDB->lastInsertId();
+    }
+
+    $query = "
+        SELECT `id` FROM `comment_service`.`comment_path`
+        WHERE `path` = :path LIMIT 1";
+    $bindings = [
+        'path' => $comment['path'],
+    ];
+    $pathId = $commentDB->fetchValue($query, $bindings);
+    if (!$pathId) {
+        $query = "
+            INSERT INTO `comment_service`.`comment_path` (`path`)
+            VALUES (:path)";
+        $bindings = [
+            'path' => $comment['path'],
+        ];
+        if (!$commentDB->perform($query, $bindings)) {
+            $logger->addError('Could not insert comment_path - exiting out');
+            exit;
+        }
+        $pathId = $commentDB->lastInsertId();
+    }
+
+    $query = "
+        SELECT `id` FROM `comment_service`.`comment_thread`
+        WHERE `thread` = :thread LIMIT 1";
+    $bindings = [
+        'thread' => 'comments',
+    ];
+    $threadId = $commentDB->fetchValue($query, $bindings);
+    if (!$threadId) {
+        $query = "
+            INSERT INTO `comment_service`.`comment_thread` (`thread`)
+            VALUES (:thread)";
+        $bindings = [
+            'thread' => 'comments',
+        ];
+        if (!$commentDB->perform($query, $bindings)) {
+            $logger->addError('Could not insert comment_thread - exiting out');
+            exit;
+        }
+        $threadId = $commentDB->lastInsertId();
+    }
+
+    $query = "
+        SELECT `id` FROM `comment_service`.`comment_location`
+        WHERE `domain` = :domain AND `path` = :path AND `thread` = :thread
+        LIMIT 1";
+    $bindings = [
+        'domain' => $domainId,
+        'path' => $pathId,
+        'thread' => $threadId,
+    ];
+    $locationId = $commentDB->fetchValue($query, $bindings);
+    if (!$locationId) {
+        $query = "
+            INSERT INTO `comment_service`.`comment_location` (`domain`, `path`, `thread`)
+            VALUES (:domain, :path, :thread)";
+        $bindings = [
+            'domain' => $domainId,
+            'path' => $pathId,
+            'thread' => $threadId,
+        ];
+        if (!$commentDB->perform($query, $bindings)) {
+            $logger->addError('Could not insert comment_location - exiting out');
+            exit;
+        }
+        $locationId = $commentDB->lastInsertId();
+    }
+
+    $query = "
+        INSERT INTO `comment_service`.`comment` (`id`, `commenter`, `comment_body`, `comment_location`,
+                                                 `comment_request`, `notify`, `display`, `create_time`)
+        VALUES (:id, :commenter, :body, :location, :request, :notify, :display, :create_time)";
+    $bindings = [
+        'id' => $comment['id'],
+        'commenter' => $commenterId,
+        'body' => $bodyId,
+        'location' => $locationId,
+        'request' => 0,
+        'notify' => $comment['notify'],
+        'display' => $comment['display'],
+        'create_time' => $comment['date'],
+    ];
+    if (!$commentDB->perform($query, $bindings)) {
+        $logger->addError('Could not insert into comment - exiting out');
+        exit;
+    }
 }
 
 $processTime = microtime(true) - $startTime;
-$logger->addInfo("Finished script, total time {$processTime} ms.\n");
+$logger->addInfo("Finished script, total time {$processTime} s.");
