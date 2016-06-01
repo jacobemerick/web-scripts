@@ -17,6 +17,9 @@ $lastBatchLimit = $commentDB->fetchValue("
     FROM `comment_service`.`comment`
     ORDER BY `id` DESC
     LIMIT 1");
+if (!$lastBatchLimit) {
+    $lastBatchLimit = 0;
+}
 
 $commentBatch = $db->getRead()->fetchAll("
     SELECT
@@ -63,12 +66,13 @@ foreach ($commentBatch as $comment) {
     $commenterId = $commentDB->fetchValue($query, $bindings);
     if (!$commenterId) {
         $query = "
-            INSERT INTO `comment_service`.`commenter` (`name`, `email`, `website`)
-            VALUES (:name, :email, :website)";
+            INSERT INTO `comment_service`.`commenter` (`name`, `email`, `website`, `is_trusted`)
+            VALUES (:name, :email, :website, :is_trusted)";
         $bindings = [
             'name' => $comment['name'],
             'email' => $comment['email'],
             'website' => $comment['url'],
+            'is_trusted' => $comment['trusted'],
         ];
         if (!$commentDB->perform($query, $bindings)) {
             $logger->addError('Could not insert commenter - exiting out');
@@ -89,11 +93,12 @@ foreach ($commentBatch as $comment) {
     }
     $bodyId = $commentDB->lastInsertId();
 
+    $domain = ($comment['site'] == 2 ? 'blog.jacobemerick.com' : 'waterfallsofthekeweenaw.com');
     $query = "
         SELECT `id` FROM `comment_service`.`comment_domain`
         WHERE `domain` = :domain LIMIT 1";
     $bindings = [
-        'domain' => $comment['site'],
+        'domain' => $domain,
     ];
     $domainId = $commentDB->fetchValue($query, $bindings);
     if (!$domainId) {
@@ -101,7 +106,7 @@ foreach ($commentBatch as $comment) {
             INSERT INTO `comment_service`.`comment_domain` (`domain`)
             VALUES (:domain)";
         $bindings = [
-            'domain' => $comment['site'],
+            'domain' => $domain,
         ];
         if (!$commentDB->perform($query, $bindings)) {
             $logger->addError('Could not insert comment_domain - exiting out');
@@ -110,11 +115,30 @@ foreach ($commentBatch as $comment) {
         $domainId = $commentDB->lastInsertId();
     }
 
+    if ($comment['site'] == 2) {
+        $query = "
+            SELECT `category` FROM `jpemeric_blog`.`post`
+            WHERE `path` = :path LIMIT 1";
+        $bindings = [
+            'path' => $comment['path'],
+        ];
+        $category = $db->getRead()->fetchValue($query, $bindings);
+        if (!$category) {
+            $logger->addError("Could not find post for path {$comment['path']}");
+            exit;
+        }
+        $path = "{$category}/{$comment['path']}";
+    } else if (!strstr('/', $comment['path'])) {
+        $path = "journal/{$comment['path']}";
+    } else {
+        $path = $comment['path'];
+    }
+
     $query = "
         SELECT `id` FROM `comment_service`.`comment_path`
         WHERE `path` = :path LIMIT 1";
     $bindings = [
-        'path' => $comment['path'],
+        'path' => $path,
     ];
     $pathId = $commentDB->fetchValue($query, $bindings);
     if (!$pathId) {
@@ -122,7 +146,7 @@ foreach ($commentBatch as $comment) {
             INSERT INTO `comment_service`.`comment_path` (`path`)
             VALUES (:path)";
         $bindings = [
-            'path' => $comment['path'],
+            'path' => $path,
         ];
         if (!$commentDB->perform($query, $bindings)) {
             $logger->addError('Could not insert comment_path - exiting out');
@@ -178,16 +202,19 @@ foreach ($commentBatch as $comment) {
         $locationId = $commentDB->lastInsertId();
     }
 
+    $url = ($comment['site'] == 2 ? 'blog.jacobemerick.com' : 'www.waterfallsofthekeweenaw.com');
+    $url = "https://{$url}/{$path}/#comment-{$comment['id']}";
     $query = "
         INSERT INTO `comment_service`.`comment` (`id`, `commenter`, `comment_body`, `comment_location`,
-                                                 `comment_request`, `notify`, `display`, `create_time`)
-        VALUES (:id, :commenter, :body, :location, :request, :notify, :display, :create_time)";
+                                                 `comment_request`, `url`, `notify`, `display`, `create_time`)
+        VALUES (:id, :commenter, :body, :location, :request, :url, :notify, :display, :create_time)";
     $bindings = [
         'id' => $comment['id'],
         'commenter' => $commenterId,
         'body' => $bodyId,
         'location' => $locationId,
         'request' => 0,
+        'url' => $url,
         'notify' => $comment['notify'],
         'display' => $comment['display'],
         'create_time' => $comment['date'],
