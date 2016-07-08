@@ -1,4 +1,5 @@
 /build
 /vendor
+codeclimate.json
 composer.phar
 config.json
