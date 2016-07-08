@@ -9,5 +9,5 @@ install:
   - composer install --dev --no-interaction
 
 script:
-  - echo "Error: no tests"
+  - echo "No tests"
   - exit 1
