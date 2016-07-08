@@ -8,4 +8,6 @@ install:
   - composer self-update
   - composer install --dev --no-interaction
 
-scripts: echo "Error: no tests" && exit 1
+scripts:
+  - echo "Error: no tests"
+  - exit 1
