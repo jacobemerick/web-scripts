@@ -9,7 +9,12 @@ $mostRecentVideoDateTime = $db->getRead()->fetchValue(
 );
 $mostRecentVideoDateTime = new DateTime($mostRecentVideoDateTime);
 
-$playlist = $client->getPlaylistItemsByPlaylistId($config->youtube->favorites_playlist, 10);
+try {
+    $playlist = $client->getPlaylistItemsByPlaylistId($config->youtube->favorites_playlist, 10);
+} catch (Exception $e) {
+    $logger->addError($e->getMessage());
+    exit();
+}
 
 foreach ($playlist as $playlistItem) {
     $datetime = new DateTime($playlistItem->snippet->publishedAt);

@@ -10,14 +10,20 @@ $client = new Abraham\TwitterOAuth\TwitterOAuth(
 );
 $client->setDecodeJsonAsArray(true);
 
-$recentTweets = $client->get('statuses/user_timeline', [
-    'screen_name' => 'jpemeric',
-    'count' => 50,
-    'trim_user' => true,
-]);
+try {
+    $recentTweets = $client->get('statuses/user_timeline', [
+        'screen_name' => 'jpemeric',
+        'count' => 50,
+        'trim_user' => true,
+    ]);
+} catch (Exception $e) {
+    $logger->addError($e->getMessage());
+    exit();
+}
 
 if (isset($recentTweets['errors'])) {
-    throw new Exception("Error encountered with twitter api {$recentTweets['errors'][0]['message']}");
+    $logger->addError($recentTweets['errors'][0]['message']);
+    exit();
 }
 
 foreach ($recentTweets as $tweet) {

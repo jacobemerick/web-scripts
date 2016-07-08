@@ -7,7 +7,13 @@ $mostRecentBlogDateTime = $db->getRead()->fetchValue(
 );
 $mostRecentBlogDateTime = new DateTime($mostRecentBlogDateTime);
 
-$blogFeed = Feed::loadRss('https://blog.jacobemerick.com/rss.xml');
+try {
+    $blogFeed = Feed::loadRss('https://blog.jacobemerick.com/rss.xml');
+} catch (Exception $e) {
+    $logger->addError($e->getMessage());
+    exit();
+}
+
 foreach ($blogFeed->item as $item) {
     $dateTime = new DateTime($item->pubDate);
     if ($dateTime <= $mostRecentBlogDateTime) {

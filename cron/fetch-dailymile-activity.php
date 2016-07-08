@@ -9,10 +9,15 @@ $mostRecentEntryDateTime = $db->getRead()->fetchValue(
 );
 $mostRecentEntryDateTime = new DateTime($mostRecentEntryDateTime);
 
-$entries = $client->getEntries([
-    'username' => 'JacobE4',
-    'since' => $mostRecentEntryDateTime->getTimestamp(),
-]);
+try {
+    $entries = $client->getEntries([
+        'username' => 'JacobE4',
+        'since' => $mostRecentEntryDateTime->getTimestamp(),
+    ]);
+} catch (Exception $e) {
+    $logger->addError($e->getMessage());
+    exit();
+}
 
 foreach ($entries as $entry) {
     $uniqueEntryCheck = $db->getRead()->fetchValue(

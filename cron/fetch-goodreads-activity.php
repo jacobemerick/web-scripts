@@ -9,7 +9,13 @@ $mostRecentReviewDateTime = $db->getRead()->fetchValue(
 );
 $mostRecentReviewDateTime = new DateTime($mostRecentReviewDateTime);
 
-$response = $client->get("/review/list_rss/{$config->goodread->shelf_id}");
+try {
+    $response = $client->get("/review/list_rss/{$config->goodread->shelf_id}");
+} catch (Exception $e) {
+    $logger->addError($e->getMessage());
+    exit();
+}
+
 $reviews = (string) $response->getBody();
 $reviews = simplexml_load_string($reviews, 'SimpleXMLElement', LIBXML_NOCDATA);
 

@@ -21,7 +21,13 @@ $parameters = [
     'sha' => 'master',
     'since' => $mostRecentChangeDateTime->format('c'),
 ];
-$commits = $client->api('repo')->commits()->all('jacobemerick', 'web', $parameters);
+
+try {
+    $commits = $client->api('repo')->commits()->all('jacobemerick', 'web', $parameters);
+} catch (Exception $e) {
+    $logger->addError($e->getMessage());
+    exit;
+}
 
 foreach ($commits as $commit) {
     $uniqueChangeCheck = $db->getRead()->fetchValue(
