@@ -59,5 +59,8 @@ $logName = end($logName);
 $logName = explode('.', $logName);
 $logName = current($logName);
 
+$logPath = __DIR__ . "/logs/{$logName}.log";
+$streamHandler = new Monolog\Handler\StreamHandler($logPath, Monolog\Logger::INFO);
+
 $logger = new Monolog\Logger('script');
-$logger->pushHandler(new Monolog\Handler\StreamHandler("logs/{$logName}.log", Monolog\Logger::INFO));
+$logger->pushHandler($streamHandler);
