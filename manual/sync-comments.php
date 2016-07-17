@@ -21,6 +21,9 @@ if (!$lastBatchLimit) {
     $lastBatchLimit = 0;
 }
 
+$opts = getopt('s:');
+$limit = (isset($opts['s']) && !empty($opts['s'])) ? $opts['s'] : 100;
+
 $commentBatch = $db->getRead()->fetchAll("
     SELECT
         `comment_meta`.`id`,
@@ -41,7 +44,7 @@ $commentBatch = $db->getRead()->fetchAll("
     INNER JOIN `jpemeric_comment`.`commenter` ON `commenter`.`id` = `comment_meta`.`commenter`
     INNER JOIN `jpemeric_comment`.`comment_page` ON `comment_page`.`id` = `comment_meta`.`comment_page`
     WHERE `comment_meta`.`id` > :last_batch_limit
-    ORDER BY `id` ASC LIMIT 100",
+    ORDER BY `id` ASC LIMIT {$limit}",
     [
         'last_batch_limit' => $lastBatchLimit,
     ]);
@@ -205,14 +208,17 @@ foreach ($commentBatch as $comment) {
     $url = ($comment['site'] == 2 ? 'blog.jacobemerick.com' : 'www.waterfallsofthekeweenaw.com');
     $url = "https://{$url}/{$path}/#comment-{$comment['id']}";
     $query = "
-        INSERT INTO `comment_service`.`comment` (`id`, `commenter`, `comment_body`, `comment_location`,
-                                                 `comment_request`, `url`, `notify`, `display`, `create_time`)
-        VALUES (:id, :commenter, :body, :location, :request, :url, :notify, :display, :create_time)";
+        INSERT INTO `comment_service`.`comment`
+            (`id`, `commenter`, `comment_body`, `comment_location`, `reply_to`,
+             `comment_request`, `url`, `notify`, `display`, `create_time`)
+        VALUES (:id, :commenter, :body, :location, :reply_to,
+                :request, :url, :notify, :display, :create_time)";
     $bindings = [
         'id' => $comment['id'],
         'commenter' => $commenterId,
         'body' => $bodyId,
         'location' => $locationId,
+        'reply_to' => $comment['reply'],
         'request' => 0,
         'url' => $url,
         'notify' => $comment['notify'],
