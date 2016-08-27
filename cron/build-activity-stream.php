@@ -445,7 +445,7 @@ foreach ($newGoodreadActivity as $goodread) {
     $insertActivity(
         $message,
         $messageLong,
-        (new DateTime($goodread['datetime'])),
+        (new DateTime($goodreadData['user_read_at'])),
         [],
         'book',
         $goodread['id']
