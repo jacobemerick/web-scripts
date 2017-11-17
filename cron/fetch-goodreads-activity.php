@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/../bootstrap.php';
 
-$client = new GuzzleHttp\Client(['base_uri' => 'http://www.goodreads.com']);
+$client = new GuzzleHttp\Client(['base_uri' => 'https://www.goodreads.com']);
 
 $mostRecentReviewDateTime = $db->getRead()->fetchValue(
     "SELECT `datetime` FROM `jpemeric_stream`.`goodread` ORDER BY `datetime` DESC LIMIT 1"
