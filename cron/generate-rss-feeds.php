@@ -110,41 +110,76 @@ $blogCommentChannel->description('Most recent comments on blog posts of Jacob Em
 $blogCommentChannel->url('https://blog.jacobemerick.com'); // todo depends on env
 $blogCommentChannel->appendTo($blogCommentFeed);
 
+$client = new GuzzleHttp\Client([
+    'base_uri' => $config->comments->host,
+    'timeout' => $config->comments->timeout,
+    'auth' => [
+        $config->comments->user,
+        $config->comments->password,
+    ],
+]);
+
+$page = 1;
+$activeBlogComments = [];
+
+while (true) {
+    try {
+        $response = $client->get('/comments', [
+            'query' => [
+                'domain' => 'blog.jacobemerick.com',
+                'page' => $page,
+                'per_page' => 50,
+                'order' => '-date',
+            ],
+        ]);
+    } catch (Exception $e) {
+        $logger->addError($e->getMessage());
+        exit();
+    }
+
+    $comments = (string) $response->getBody();
+    $comments = json_decode($comments);
+
+    if (empty($comments)) {
+        break;
+    }
+
+    $activeBlogComments = array_merge($activeBlogComments, $comments);
+    $page++;
+}
+
+$titles = [];
+
 $query = "
-    SELECT `comment_meta`.`id`, `comment_meta`.`date`, `comment`.`body`, `commenter`.`name`,
-           `post`.`title`, `post`.`category`, `post`.`path`
-    FROM `jpemeric_comment`.`comment_meta`
-    INNER JOIN `jpemeric_comment`.`comment` ON `comment`.`id` = `comment_meta`.`comment`
-    INNER JOIN `jpemeric_comment`.`commenter` ON `commenter`.`id` = `comment_meta`.`commenter` AND
-                                                 `commenter`.`trusted` = :trusted_commenter
-    INNER JOIN `jpemeric_comment`.`comment_page` ON `comment_page`.`id` = `comment_meta`.`comment_page` AND
-                                                    `comment_page`.`site` = :comment_site
-    INNER JOIN `jpemeric_blog`.`post` ON `post`.`path` = `comment_page`.`path` AND
-                                         `post`.`display` = :display_post
-    WHERE `comment_meta`.`display` = :active_comment
-    ORDER BY `comment_meta`.`date` DESC";
+    SELECT `path`, `category`, `title`
+    FROM `jpemeric_blog`.`post`
+    WHERE `display` = :is_active";
 $bindings = [
-    'trusted_commenter' => 1,
-    'comment_site' => 2,
-    'display_post' => 1,
-    'active_comment' => 1,
+    'is_active' => 1,
 ];
+$posts = $db->getRead()->fetchAll($query, $bindings);
 
-$activeBlogComments = $db->getRead()->fetchAll($query, $bindings);
-
+foreach ($posts as $post) {
+    $titles["/{$post['category']}/{$post['path']}/"] = $post['title'];
+}
+ 
 foreach ($activeBlogComments as $blogComment) {
     $blogCommentItem = new Item();
 
-    $blogCommentItem->title("Comment on '{$blogComment['title']}' from {$blogComment['name']}");
+    $slug = parse_url($blogComment->url);
+    $title = $titles[$slug['path']];
+    if (empty($title)) {
+        $logger->addError("No post could be found for {$blogComment->url}");
+        exit();
+    }
 
-    $url = "https://blog.jacobemerick.com/{$blogComment['category']}/{$blogComment['path']}/";
-    $url .= "#comment-{$blogComment['id']}";
-    $blogCommentItem->url($url);
-    $blogCommentItem->guid($url, true);
+    $blogCommentItem->title("Comment on '{$title}' from {$blogComment->commenter->name}");
+    $blogCommentItem->url($blogComment->url);
+    $blogCommentItem->guid($blogComment->url, true);
 
-    $description = $blogComment['body'];
+    $description = $blogComment->body;
     $description = strip_tags($description);
-    $description = strtok($description, "\n");
+    $description = strtok($description, "\r\n");
     if (strlen($description) > 250) {
         $description = wordwrap($description, 250);
         $description = strtok($description, "\n");
@@ -156,7 +191,7 @@ foreach ($activeBlogComments as $blogComment) {
     $description = trim($description);
     $blogCommentItem->description($description);
 
-    $pubDate = new DateTime($blogComment['date']);
+    $pubDate = new DateTime($blogComment->date);
     $blogCommentItem->pubDate($pubDate->getTimestamp());
 
     $blogCommentItem->appendTo($blogCommentChannel);
