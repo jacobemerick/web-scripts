@@ -437,7 +437,7 @@ foreach ($newGoodreadActivity as $goodread) {
         $messageLong = sprintf(
             "<img alt=\"Goodreads | %s\" src=\"%s\" />\n",
             $goodreadData['title'],
-            str_replace('http', 'https', $goodreadData['book_large_image_url'])
+            $goodreadData['book_large_image_url']
         );
     }
     $messageLong .= "<p>{$message}</p>";
